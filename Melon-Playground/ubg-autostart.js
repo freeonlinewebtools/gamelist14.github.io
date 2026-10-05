@@ -74,8 +74,11 @@
   function hideHint() { var e = document.getElementById('ubg-melon-hint'); if (e) e.remove(); }
 
   // a real (trusted) interaction means the player is driving; our synthetic events are never isTrusted
+  // (only counted once the game has finished loading: the click on the site's own "Click to Play" button, and
+  // any key presses while it loads, happen before there is anything in the game to take over)
+  var loaded = false;
   ['mousedown', 'pointerdown', 'touchstart', 'keydown'].forEach(function (t) {
-    window.addEventListener(t, function (e) { if (e.isTrusted) userTookOver = true; }, true);
+    window.addEventListener(t, function (e) { if (e.isTrusted && loaded) userTookOver = true; }, true);
   });
 
   window.ubgStartSandbox = function () { userTookOver = false; run(); };
@@ -85,6 +88,7 @@
     var bar = document.getElementById('unity-loading-bar');
     if (window.unityInstance && bar && bar.style.display === 'none') {
       clearInterval(poll);
+      loaded = true;
       say('Loaded. Starting the sandbox for you...');
       setTimeout(function () { if (!autoDone && !userTookOver) run(); else if (userTookOver) say('Auto-start skipped because you started clicking. Press "Start sandbox" if you want it.'); }, 9000);
     }
